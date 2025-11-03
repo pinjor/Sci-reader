@@ -84,7 +84,18 @@ export default function YourPapers() {
                 onListen={() =>
                   updatePaper(paper.id, { listened: !paper.listened })
                 }
-                onShare={() => {}}
+                    onShare={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: paper.title,
+                          text: paper.abstract,
+                          url: window.location.href,
+                        })
+                      } else {
+                        navigator.clipboard.writeText(`${paper.title}\n${window.location.href}`)
+                        alert('Paper link copied to clipboard!')
+                      }
+                    }}
               />
             ))}
           </div>

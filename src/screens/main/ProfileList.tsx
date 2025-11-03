@@ -74,12 +74,27 @@ export default function ProfileList() {
     {
       icon: <MagnifyingGlassIcon className="w-5 h-5" />,
       label: 'Rate Us',
-      onClick: () => {},
+      onClick: () => {
+        // In a real app, open app store rating
+        alert('Opening app store for rating...')
+      },
     },
     {
       icon: <MagnifyingGlassIcon className="w-5 h-5" />,
       label: 'Invite Friends',
-      onClick: () => {},
+      onClick: () => {
+        // Share functionality
+        if (navigator.share) {
+          navigator.share({
+            title: 'Join me on SciRadar',
+            text: 'Discover and collaborate on research papers!',
+            url: window.location.origin,
+          })
+        } else {
+          navigator.clipboard.writeText(`${window.location.origin} - Join me on SciRadar!`)
+          alert('Invite link copied to clipboard!')
+        }
+      },
     },
   ]
 
@@ -163,6 +178,11 @@ export default function ProfileList() {
           variant="secondary"
           fullWidth
           className="bg-gray-100 text-gray-900 hover:bg-gray-200"
+          onClick={() => {
+            if (confirm('Are you sure you want to logout?')) {
+              navigate('/welcome')
+            }
+          }}
         >
           <ArrowRightIcon className="w-5 h-5 rotate-180" />
           Logout

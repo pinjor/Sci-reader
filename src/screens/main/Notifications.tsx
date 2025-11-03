@@ -51,8 +51,17 @@ export default function Notifications() {
         {notifications.map((notification) => (
           <Card
             key={notification.id}
-            className="flex gap-4 p-4 cursor-pointer"
-            onClick={() => {}}
+            className="flex gap-4 p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+            onClick={() => {
+              // Navigate based on notification type
+              if (notification.type === 'invitation') {
+                navigate('/library')
+              } else if (notification.type === 'follower') {
+                navigate('/profile-list')
+              } else if (notification.type === 'paper') {
+                navigate('/papers')
+              }
+            }}
           >
             <div className="w-16 h-16 rounded-xl bg-gray-200 flex-shrink-0" />
             <div className="flex-1">

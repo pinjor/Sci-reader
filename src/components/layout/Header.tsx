@@ -28,6 +28,7 @@ export default function Header({ showSearch = true }: HeaderProps) {
               <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" />
             </button>
             <button
+              onClick={() => navigate('/papers')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <BookmarkIcon className="w-6 h-6 text-gray-600" />

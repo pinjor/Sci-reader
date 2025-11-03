@@ -45,7 +45,14 @@ export default function SearchBar({ onSearch, placeholder = 'Search' }: SearchBa
           <button
             type="button"
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            onClick={() => {}}
+            onClick={() => {
+              // Navigate to search page with filter option
+              if (query.trim()) {
+                navigate(`/search?q=${encodeURIComponent(query)}&filter=true`)
+              } else {
+                navigate('/search')
+              }
+            }}
           >
             <FunnelIcon className="w-5 h-5 text-gray-400" />
           </button>

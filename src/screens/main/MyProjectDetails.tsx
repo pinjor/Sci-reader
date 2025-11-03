@@ -338,8 +338,12 @@ export default function MyProjectDetails() {
             <p className="font-medium text-gray-900 mb-2">Upload Paper</p>
             <p className="text-sm text-gray-500">PDF (Max Size: 2 MB)</p>
           </div>
-          <Button variant="primary" fullWidth>
-            Create Project
+          <Button variant="primary" fullWidth onClick={() => {
+            // In a real app, create paper and add to project
+            alert('Paper added to project!')
+            setShowAddPaper(false)
+          }}>
+            Add Paper
           </Button>
         </div>
       </BottomSheet>

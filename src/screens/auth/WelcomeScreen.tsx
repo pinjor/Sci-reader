@@ -124,18 +124,20 @@ export default function WelcomeScreen() {
           By continuing, you agree to SciRadar's{' '}
           <button
             onClick={() => {
-              // Navigate to terms
+              // In a real app, navigate to terms page
+              alert('Terms and Conditions would be displayed here')
             }}
-            className="underline hover:text-white"
+            className="underline hover:text-white transition-colors"
           >
             Terms and Conditions
           </button>{' '}
           and acknowledge you've read our{' '}
           <button
             onClick={() => {
-              // Navigate to privacy
+              // In a real app, navigate to privacy policy page
+              alert('Privacy Policy would be displayed here')
             }}
-            className="underline hover:text-white"
+            className="underline hover:text-white transition-colors"
           >
             Privacy Policy
           </button>

@@ -1,19 +1,24 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { pageTransition } from '../../utils/animations'
 import Header from '../../components/layout/Header'
 import BottomNav from '../../components/layout/BottomNav'
 import PaperCard from '../../components/ui/PaperCard'
 import Button from '../../components/ui/Button'
 import BottomSheet from '../../components/ui/BottomSheet'
+import Input from '../../components/ui/Input'
 import { PlusIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { useApp } from '../../context/AppContext'
 
 export default function HomeFeed() {
-  const { papers, updatePaper, projects } = useApp()
+  const navigate = useNavigate()
+  const { papers, updatePaper, projects, addProject } = useApp()
   const [showSaveToLibrary, setShowSaveToLibrary] = useState(false)
   const [selectedProjects, setSelectedProjects] = useState<string[]>([])
   const [currentPaperId, setCurrentPaperId] = useState<string | null>(null)
+  const [showCreateProject, setShowCreateProject] = useState(false)
+  const [newProjectTitle, setNewProjectTitle] = useState('')
 
   return (
     <motion.div
@@ -81,14 +86,27 @@ export default function HomeFeed() {
                 onListen={() =>
                   updatePaper(paper.id, { listened: !paper.listened })
                 }
-                onShare={() => {}}
+                onShare={() => {
+                  // Share functionality
+                  if (navigator.share) {
+                    navigator.share({
+                      title: paper.title,
+                      text: paper.abstract,
+                      url: window.location.href,
+                    })
+                  } else {
+                    // Fallback: copy to clipboard
+                    navigator.clipboard.writeText(`${paper.title}\n${window.location.href}`)
+                    alert('Paper link copied to clipboard!')
+                  }
+                }}
               />
             ))}
           </div>
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-500 mb-4">No new papers found.</p>
-            <Button variant="outline" onClick={() => {}}>
+            <Button variant="outline" onClick={() => navigate('/search')}>
               Explore Papers
             </Button>
           </div>
@@ -158,7 +176,10 @@ export default function HomeFeed() {
               ))}
             </div>
           </div>
-          <button className="flex items-center gap-2 text-primary font-medium mb-4">
+          <button 
+            onClick={() => setShowCreateProject(true)}
+            className="flex items-center gap-2 text-primary font-medium mb-4 hover:text-primary/80 transition-colors"
+          >
             <PlusIcon className="w-5 h-5" />
             Create New Project
           </button>
@@ -175,6 +196,74 @@ export default function HomeFeed() {
             }}
           >
             Done
+          </Button>
+        </div>
+      </BottomSheet>
+
+      {/* Create Project Bottom Sheet */}
+      <BottomSheet
+        isOpen={showCreateProject}
+        onClose={() => {
+          setShowCreateProject(false)
+          setNewProjectTitle('')
+        }}
+        title="Create New Project"
+        subtitle="Start a new project to organize your research."
+      >
+        <div className="space-y-4">
+          <Input
+            placeholder="Project Title"
+            value={newProjectTitle}
+            onChange={(e) => setNewProjectTitle(e.target.value)}
+          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Privacy:</label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="privacy"
+                  value="private"
+                  defaultChecked
+                  className="w-5 h-5 text-primary"
+                />
+                <span className="text-sm text-gray-700">Private</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="privacy"
+                  value="public"
+                  className="w-5 h-5 text-primary"
+                />
+                <span className="text-sm text-gray-700">Public</span>
+              </label>
+            </div>
+          </div>
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={() => {
+              if (newProjectTitle.trim()) {
+                const newProject = {
+                  id: Date.now().toString(),
+                  title: newProjectTitle,
+                  papers: currentPaperId ? [currentPaperId] : [],
+                  members: ['john-doe'],
+                  privacy: (document.querySelector('input[name="privacy"]:checked') as HTMLInputElement)?.value === 'public' ? 'public' : 'private',
+                  createdAt: new Date().toISOString(),
+                }
+                addProject(newProject)
+                if (currentPaperId) {
+                  setSelectedProjects([...selectedProjects, newProject.id])
+                }
+                setShowCreateProject(false)
+                setNewProjectTitle('')
+              }
+            }}
+            disabled={!newProjectTitle.trim()}
+          >
+            Create Project
           </Button>
         </div>
       </BottomSheet>

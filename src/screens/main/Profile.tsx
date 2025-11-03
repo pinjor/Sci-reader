@@ -129,7 +129,18 @@ export default function Profile() {
                     listened={paper.listened}
                     onSave={() => {}}
                     onListen={() => {}}
-                    onShare={() => {}}
+                        onShare={() => {
+                          if (navigator.share) {
+                            navigator.share({
+                              title: paper.title,
+                              text: paper.abstract,
+                              url: window.location.href,
+                            })
+                          } else {
+                            navigator.clipboard.writeText(`${paper.title}\n${window.location.href}`)
+                            alert('Paper link copied to clipboard!')
+                          }
+                        }}
                   />
                 ))}
               </div>

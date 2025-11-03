@@ -93,13 +93,39 @@ export default function PaperDetails() {
                     <button className="p-2 hover:bg-gray-100 rounded-lg">
                       <PlayIcon className="w-5 h-5 text-gray-600" />
                     </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
-                      <BookmarkIcon className="w-5 h-5 text-gray-600" />
-                    </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                      <button 
+                        onClick={() => {
+                          // Toggle save functionality
+                          updatePaper(paper.id, { saved: !paper.saved })
+                        }}
+                        className={`p-2 hover:bg-gray-100 rounded-lg transition-colors ${paper.saved ? 'text-primary' : ''}`}
+                      >
+                        <BookmarkIcon className={`w-5 h-5 ${paper.saved ? 'fill-primary' : ''}`} />
+                      </button>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${paper.title}\n\n${paper.abstract}`)
+                        alert('Paper content copied to clipboard!')
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
                       <DocumentDuplicateIcon className="w-5 h-5 text-gray-600" />
                     </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                    <button 
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({
+                            title: paper.title,
+                            text: paper.abstract,
+                            url: window.location.href,
+                          })
+                        } else {
+                          navigator.clipboard.writeText(`${paper.title}\n${window.location.href}`)
+                          alert('Paper link copied to clipboard!')
+                        }
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
                       <ShareIcon className="w-5 h-5 text-gray-600" />
                     </button>
                   </div>
@@ -119,8 +145,16 @@ export default function PaperDetails() {
 
             {activeTab === 'ai' && (
               <div className="mt-4 space-y-4">
-                <Button variant="secondary" fullWidth>
-                  Explain the method.
+                <Button 
+                  variant="secondary" 
+                  fullWidth
+                  onClick={() => {
+                    // In a real app, call AI API to explain method
+                    alert('AI explanation would be generated here')
+                  }}
+                >
+                  <SparklesIcon className="w-5 h-5" />
+                  Explain the method
                 </Button>
                 <div className="bg-white rounded-2xl p-4 shadow-soft">
                   <h4 className="font-bold text-gray-900 mb-2">
@@ -134,10 +168,30 @@ export default function PaperDetails() {
                       <button className="p-2 hover:bg-gray-100 rounded-lg">
                         <PlayIcon className="w-5 h-5 text-gray-600" />
                       </button>
-                      <button className="p-2 hover:bg-gray-100 rounded-lg">
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${paper.title}\n\n${paper.abstract}`)
+                          alert('Paper content copied to clipboard!')
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
                         <DocumentDuplicateIcon className="w-5 h-5 text-gray-600" />
                       </button>
-                      <button className="p-2 hover:bg-gray-100 rounded-lg">
+                      <button 
+                        onClick={() => {
+                          if (navigator.share) {
+                            navigator.share({
+                              title: paper.title,
+                              text: paper.abstract,
+                              url: window.location.href,
+                            })
+                          } else {
+                            navigator.clipboard.writeText(`${paper.title}\n${window.location.href}`)
+                            alert('Paper link copied to clipboard!')
+                          }
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
                         <ShareIcon className="w-5 h-5 text-gray-600" />
                       </button>
                     </div>
@@ -174,7 +228,14 @@ export default function PaperDetails() {
                 <p className="text-gray-500 italic mb-4">
                   The full text of this paper is not available.
                 </p>
-                <Button variant="primary" fullWidth>
+                <Button 
+                  variant="primary" 
+                  fullWidth
+                  onClick={() => {
+                    // In a real app, navigate to purchase page
+                    alert('Redirecting to purchase page...')
+                  }}
+                >
                   <SparklesIcon className="w-5 h-5" />
                   Purchase Full Paper
                 </Button>
