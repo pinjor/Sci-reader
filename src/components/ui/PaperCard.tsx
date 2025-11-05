@@ -1,7 +1,7 @@
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { BookmarkIcon, ShareIcon } from '@heroicons/react/24/outline'
-import { MusicalNoteIcon } from '@heroicons/react/24/solid'
+import React from 'react'
+import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import Icon from 'react-native-vector-icons/Ionicons'
 import Button from './Button'
 import Badge from './Badge'
 
@@ -19,7 +19,7 @@ interface PaperCardProps {
   onSave?: () => void
   onListen?: () => void
   onShare?: () => void
-  onClick?: () => void
+  onPress?: () => void
 }
 
 export default function PaperCard({
@@ -36,84 +36,80 @@ export default function PaperCard({
   onSave,
   onListen,
   onShare,
-  onClick,
+  onPress,
 }: PaperCardProps) {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
 
-  const handleCardClick = () => {
-    if (onClick) {
-      onClick()
+  const handleCardPress = () => {
+    if (onPress) {
+      onPress()
     } else if (id) {
-      navigate(`/paper/${id}`)
+      navigation.navigate('PaperDetails', { id })
     }
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl shadow-soft p-4 mb-4 cursor-pointer hover:shadow-md transition-shadow"
-      onClick={handleCardClick}
+    <Pressable
+      style={styles.card}
+      onPress={handleCardPress}
     >
       {/* Badges */}
-      <div className="flex gap-2 mb-3 flex-wrap">
+      <View style={styles.badgesContainer}>
         {badges.map((badge, index) => (
           <Badge key={index} label={badge} variant={getBadgeVariant(badge)} />
         ))}
-      </div>
+      </View>
 
       {/* Title */}
-      <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+      <Text style={styles.title} numberOfLines={2}>
         {title}
-      </h3>
+      </Text>
 
       {/* Metadata */}
-      <p className="text-sm text-gray-500 mb-2">
+      <Text style={styles.metadata}>
         {authors.join(', ')} • {year} • {source} • Cited by {citations}
-      </p>
+      </Text>
 
       {/* Abstract */}
-      <p className="text-sm text-gray-600 mb-4 line-clamp-3">{abstract}</p>
+      <Text style={styles.abstract} numberOfLines={3}>
+        {abstract}
+      </Text>
 
       {/* Actions */}
-      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-        <Button
-          variant={saved ? 'primary' : 'outline'}
-          className="flex-1"
-          onClick={(e) => {
-            e.stopPropagation()
+      <View style={styles.actionsContainer}>
+        <TouchableOpacity
+          style={[styles.actionButton, saved ? styles.actionButtonPrimary : styles.actionButtonOutline]}
+          onPress={(e) => {
+            e?.stopPropagation?.()
             onSave?.()
           }}
         >
-          <BookmarkIcon className="w-5 h-5" />
-          {saved ? 'Saved' : 'Save'}
-        </Button>
-        <Button
-          variant="secondary"
-          className="flex-1"
-          onClick={(e) => {
-            e.stopPropagation()
+          <Icon name={saved ? 'bookmark' : 'bookmark-outline'} size={20} color={saved ? '#FFFFFF' : '#0072FF'} />
+          <Text style={[styles.actionText, saved && styles.actionTextPrimary]}>
+            {saved ? 'Saved' : 'Save'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.actionButtonSecondary]}
+          onPress={(e) => {
+            e?.stopPropagation?.()
             onListen?.()
           }}
         >
-          {listened ? (
-            <MusicalNoteIcon className="w-5 h-5 text-purple-500" />
-          ) : (
-            <MusicalNoteIcon className="w-5 h-5" />
-          )}
-          Listen
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={(e) => {
-            e.stopPropagation()
+          <Icon name="musical-notes" size={20} color={listened ? '#9333EA' : '#111827'} />
+          <Text style={styles.actionText}>Listen</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButtonIcon, styles.actionButtonSecondary]}
+          onPress={(e) => {
+            e?.stopPropagation?.()
             onShare?.()
           }}
         >
-          <ShareIcon className="w-5 h-5" />
-        </Button>
-      </div>
-    </motion.div>
+          <Icon name="share-outline" size={20} color="#111827" />
+        </TouchableOpacity>
+      </View>
+    </Pressable>
   )
 }
 
@@ -123,3 +119,80 @@ function getBadgeVariant(badge: string): 'success' | 'warning' | 'info' {
   return 'warning'
 }
 
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  badgesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  metadata: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  abstract: {
+    fontSize: 14,
+    color: '#4B5563',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  actionButtonPrimary: {
+    backgroundColor: '#0072FF',
+  },
+  actionButtonOutline: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#0072FF',
+  },
+  actionButtonSecondary: {
+    backgroundColor: '#F3F4F6',
+  },
+  actionButtonIcon: {
+    width: 48,
+    height: 48,
+    flex: 0,
+  },
+  actionText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  actionTextPrimary: {
+    color: '#FFFFFF',
+  },
+})

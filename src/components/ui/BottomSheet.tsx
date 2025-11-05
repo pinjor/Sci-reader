@@ -1,7 +1,7 @@
-import { ReactNode, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import { slideUp } from '../../utils/animations'
+import React, { ReactNode } from 'react'
+import { Modal, View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 interface BottomSheetProps {
   isOpen: boolean
@@ -18,64 +18,121 @@ export default function BottomSheet({
   children,
   subtitle,
 }: BottomSheetProps) {
-  useEffect(() => {
+  const translateY = useSharedValue(500)
+  const opacity = useSharedValue(0)
+
+  React.useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
+      translateY.value = withSpring(0, { damping: 20, stiffness: 90 })
+      opacity.value = withTiming(1, { duration: 200 })
     } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
+      translateY.value = withSpring(500, { damping: 20, stiffness: 90 })
+      opacity.value = withTiming(0, { duration: 200 })
     }
   }, [isOpen])
 
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }))
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }))
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-40"
-          />
+    <Modal
+      visible={isOpen}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+    >
+      <Animated.View style={[styles.backdrop, backdropStyle]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      </Animated.View>
 
-          {/* Bottom Sheet */}
-          <motion.div
-            {...slideUp}
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto"
-          >
-            {/* Drag Handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-12 h-1 bg-gray-300 rounded-full" />
-            </div>
+      <Animated.View style={[styles.sheet, sheetStyle]}>
+        {/* Drag Handle */}
+        <View style={styles.dragHandle}>
+          <View style={styles.dragHandleBar} />
+        </View>
 
-            {/* Header */}
-            <div className="px-4 pb-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-                  {subtitle && (
-                    <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
-                  )}
-                </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <XMarkIcon className="w-6 h-6 text-gray-400" />
-                </button>
-              </div>
-            </div>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>{title}</Text>
+            {subtitle && (
+              <Text style={styles.subtitle}>{subtitle}</Text>
+            )}
+          </View>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Icon name="close" size={24} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
 
-            {/* Content */}
-            <div className="px-4 py-4">{children}</div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        {/* Content */}
+        <View style={styles.content}>
+          {children}
+        </View>
+      </Animated.View>
+    </Modal>
   )
 }
 
+const styles = StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  sheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+    paddingBottom: 32,
+  },
+  dragHandle: {
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  dragHandleBar: {
+    width: 48,
+    height: 4,
+    backgroundColor: '#D1D5DB',
+    borderRadius: 2,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerContent: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  closeButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+})

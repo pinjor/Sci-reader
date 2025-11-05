@@ -1,8 +1,7 @@
-import { useState } from 'react'
-import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
-import { MicrophoneIcon } from '@heroicons/react/24/solid'
-import { useNavigate } from 'react-router-dom'
-import Input from './Input'
+import React, { useState } from 'react'
+import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
+import Icon from 'react-native-vector-icons/Ionicons'
+import { useNavigation } from '@react-navigation/native'
 
 interface SearchBarProps {
   onSearch?: (query: string) => void
@@ -11,61 +10,83 @@ interface SearchBarProps {
 
 export default function SearchBar({ onSearch, placeholder = 'Search' }: SearchBarProps) {
   const [query, setQuery] = useState('')
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = () => {
     if (query.trim()) {
       if (onSearch) {
         onSearch(query)
       } else {
-        navigate(`/search?q=${encodeURIComponent(query)}`)
+        navigation.navigate('Search', { query: query.trim() })
       }
     }
   }
 
   const handleVoiceSearch = () => {
-    navigate('/voice-search')
+    navigation.navigate('VoiceSearch')
+  }
+
+  const handleFilter = () => {
+    if (query.trim()) {
+      navigation.navigate('Search', { query: query.trim(), filter: true })
+    } else {
+      navigation.navigate('Search')
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
-      <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2">
-          <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-        </div>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          className="w-full pl-10 pr-24 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-        />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
-          <button
-            type="button"
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            onClick={() => {
-              // Navigate to search page with filter option
-              if (query.trim()) {
-                navigate(`/search?q=${encodeURIComponent(query)}&filter=true`)
-              } else {
-                navigate('/search')
-              }
-            }}
-          >
-            <FunnelIcon className="w-5 h-5 text-gray-400" />
-          </button>
-          <button
-            type="button"
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            onClick={handleVoiceSearch}
-          >
-            <MicrophoneIcon className="w-5 h-5 text-primary" />
-          </button>
-        </div>
-      </div>
-    </form>
+    <View style={styles.container}>
+      <View style={styles.searchIconContainer}>
+        <Icon name="search" size={20} color="#9CA3AF" />
+      </View>
+      <TextInput
+        style={styles.input}
+        value={query}
+        onChangeText={setQuery}
+        placeholder={placeholder}
+        placeholderTextColor="#9CA3AF"
+        onSubmitEditing={handleSubmit}
+        returnKeyType="search"
+      />
+      <View style={styles.actionsContainer}>
+        <TouchableOpacity onPress={handleFilter} style={styles.actionButton}>
+          <Icon name="filter" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleVoiceSearch} style={styles.actionButton}>
+          <Icon name="mic" size={20} color="#0072FF" />
+        </TouchableOpacity>
+      </View>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  searchIconContainer: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#111827',
+    padding: 0,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginLeft: 8,
+  },
+  actionButton: {
+    padding: 4,
+  },
+})

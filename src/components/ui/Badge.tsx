@@ -1,22 +1,78 @@
+import React from 'react'
+import { View, Text, StyleSheet } from 'react-native'
+
 interface BadgeProps {
   label: string
-  variant?: 'success' | 'warning' | 'info' | 'default'
-  icon?: React.ReactNode
+  variant?: 'default' | 'success' | 'warning' | 'info'
 }
 
-export default function Badge({ label, variant = 'default', icon }: BadgeProps) {
-  const variants = {
-    success: 'bg-green-100 text-green-700',
-    warning: 'bg-orange-100 text-orange-700',
-    info: 'bg-purple-100 text-purple-700',
-    default: 'bg-gray-100 text-gray-700',
+export default function Badge({ label, variant = 'default' }: BadgeProps) {
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'success':
+        return styles.success
+      case 'warning':
+        return styles.warning
+      case 'info':
+        return styles.info
+      default:
+        return styles.default
+    }
+  }
+
+  const getTextVariantStyles = () => {
+    switch (variant) {
+      case 'success':
+        return styles.successText
+      case 'warning':
+        return styles.warningText
+      case 'info':
+        return styles.infoText
+      default:
+        return styles.defaultText
+    }
   }
 
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${variants[variant]}`}>
-      {icon && <span className="w-3 h-3">{icon}</span>}
-      {label}
-    </span>
+    <View style={[styles.badge, getVariantStyles()]}>
+      <Text style={[styles.text, getTextVariantStyles()]}>{label}</Text>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  default: {
+    backgroundColor: '#F3F4F6',
+  },
+  success: {
+    backgroundColor: '#D1FAE5',
+  },
+  warning: {
+    backgroundColor: '#FEF3C7',
+  },
+  info: {
+    backgroundColor: '#DBEAFE',
+  },
+  text: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  defaultText: {
+    color: '#374151',
+  },
+  successText: {
+    color: '#065F46',
+  },
+  warningText: {
+    color: '#92400E',
+  },
+  infoText: {
+    color: '#1E40AF',
+  },
+})

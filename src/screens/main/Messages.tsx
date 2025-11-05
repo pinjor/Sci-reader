@@ -1,8 +1,7 @@
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { pageTransition } from '../../utils/animations'
+import React from 'react'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 import Header from '../../components/layout/Header'
-import BottomNav from '../../components/layout/BottomNav'
 import Avatar from '../../components/ui/Avatar'
 
 const mockMessages = [
@@ -30,46 +29,91 @@ const mockMessages = [
 ]
 
 export default function Messages() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
+
+  const renderMessage = ({ item }: { item: typeof mockMessages[0] }) => (
+    <TouchableOpacity
+      style={styles.messageItem}
+      onPress={() => navigation.navigate('MessageDetails', { id: item.id })}
+    >
+      <Avatar name={item.name} size="lg" />
+      <View style={styles.messageContent}>
+        <View style={styles.messageHeader}>
+          <Text style={styles.messageName}>{item.name}</Text>
+          <Text style={styles.messageTime}>{item.time}</Text>
+        </View>
+        <Text style={styles.messageText} numberOfLines={1}>
+          {item.lastMessage}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  )
 
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-white pb-20"
-    >
+    <View style={styles.container}>
       <Header />
-
-      <div className="px-4 py-4">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Messages</h2>
-
-        <div className="space-y-4">
-          {mockMessages.map((message) => (
-            <motion.button
-              key={message.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={() => navigate(`/messages/${message.id}`)}
-              className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-gray-50 transition-colors"
-            >
-              <Avatar name={message.name} size="lg" />
-              <div className="flex-1 text-left">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-gray-900">
-                    {message.name}
-                  </h3>
-                  <span className="text-xs text-gray-500">{message.time}</span>
-                </div>
-                <p className="text-sm text-gray-600 line-clamp-1">
-                  {message.lastMessage}
-                </p>
-              </div>
-            </motion.button>
-          ))}
-        </div>
-      </div>
-
-      <BottomNav />
-    </motion.div>
+      <View style={styles.content}>
+        <Text style={styles.title}>Messages</Text>
+        <FlatList
+          data={mockMessages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 80,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  listContent: {
+    gap: 16,
+  },
+  messageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+  },
+  messageContent: {
+    flex: 1,
+  },
+  messageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  messageName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  messageTime: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  messageText: {
+    fontSize: 14,
+    color: '#4B5563',
+  },
+})

@@ -1,77 +1,116 @@
-import { Link, useLocation } from 'react-router-dom'
-import {
-  ChatBubbleLeftRightIcon,
-  HomeIcon,
-  BookOpenIcon,
-} from '@heroicons/react/24/outline'
-import {
-  ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
-  HomeIcon as HomeIconSolid,
-  BookOpenIcon as BookOpenIconSolid,
-} from '@heroicons/react/24/solid'
+import React from 'react'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { useNavigation, useRoute } from '@react-navigation/native'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 interface NavItem {
   path: string
   label: string
-  icon: React.ComponentType<{ className?: string }>
-  iconSolid: React.ComponentType<{ className?: string }>
+  iconOutline: string
+  iconSolid: string
 }
 
 const navItems: NavItem[] = [
   {
-    path: '/messages',
+    path: 'Messages',
     label: 'Message',
-    icon: ChatBubbleLeftRightIcon,
-    iconSolid: ChatBubbleLeftRightIconSolid,
+    iconOutline: 'chatbubbles-outline',
+    iconSolid: 'chatbubbles',
   },
   {
-    path: '/home',
+    path: 'HomeFeed',
     label: 'Home',
-    icon: HomeIcon,
-    iconSolid: HomeIconSolid,
+    iconOutline: 'home-outline',
+    iconSolid: 'home',
   },
   {
-    path: '/library',
+    path: 'MyLibrary',
     label: 'My Library',
-    icon: BookOpenIcon,
-    iconSolid: BookOpenIconSolid,
+    iconOutline: 'library-outline',
+    iconSolid: 'library',
   },
 ]
 
 export default function BottomNav() {
-  const location = useLocation()
-  const isActive = (path: string) => location.pathname.startsWith(path)
+  const navigation = useNavigation<any>()
+  const route = useRoute()
+
+  const isActive = (path: string) => {
+    // Check if current route name matches
+    const currentRoute = route.name
+    // For tab navigator, check parent state
+    if (route.state?.index !== undefined) {
+      const tabRoutes = ['Messages', 'HomeFeed', 'MyLibrary']
+      const currentIndex = route.state.index
+      return tabRoutes[currentIndex] === path
+    }
+    return currentRoute === path
+  }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 safe-area-bottom">
-      <div className="flex justify-around items-center py-2">
+    <View style={styles.nav}>
+      <View style={styles.navContainer}>
         {navItems.map((item) => {
           const active = isActive(item.path)
-          const Icon = active ? item.iconSolid : item.icon
+          const iconName = active ? item.iconSolid : item.iconOutline
 
           return (
-            <Link
+            <TouchableOpacity
               key={item.path}
-              to={item.path}
-              className="flex flex-col items-center gap-1 py-2 px-4 transition-colors"
+              onPress={() => navigation.navigate(item.path)}
+              style={styles.navItem}
             >
               <Icon
-                className={`w-6 h-6 ${
-                  active ? 'text-primary' : 'text-gray-400'
-                }`}
+                name={iconName}
+                size={24}
+                color={active ? '#0072FF' : '#9CA3AF'}
               />
-              <span
-                className={`text-xs font-medium ${
-                  active ? 'text-primary' : 'text-gray-400'
-                }`}
+              <Text
+                style={[
+                  styles.navLabel,
+                  active && styles.navLabelActive,
+                ]}
               >
                 {item.label}
-              </span>
-            </Link>
+              </Text>
+            </TouchableOpacity>
           )
         })}
-      </div>
-    </nav>
+      </View>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  nav: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingBottom: 16,
+    paddingTop: 8,
+  },
+  navContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  navItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  navLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#9CA3AF',
+  },
+  navLabelActive: {
+    color: '#0072FF',
+  },
+})

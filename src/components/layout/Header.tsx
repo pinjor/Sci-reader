@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom'
-import { BellIcon, BookmarkIcon } from '@heroicons/react/24/outline'
-import { useNavigate } from 'react-router-dom'
+import React from 'react'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import Icon from 'react-native-vector-icons/Ionicons'
 import Avatar from '../ui/Avatar'
 import SearchBar from '../ui/SearchBar'
 
@@ -9,40 +10,88 @@ interface HeaderProps {
 }
 
 export default function Header({ showSearch = true }: HeaderProps) {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
 
   return (
-    <header className="sticky top-0 bg-white z-20 border-b border-gray-100">
-      <div className="px-4 py-3">
+    <View style={styles.header}>
+      <View style={styles.container}>
         {/* Top Row */}
-        <div className="flex items-center justify-between mb-3">
-          <Link to="/home" className="text-2xl font-bold text-primary">
-            SciRadar
-          </Link>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/notifications')}
-              className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        <View style={styles.topRow}>
+          <TouchableOpacity onPress={() => {
+            // Navigate to MainTabs if not already there
+            if (navigation.canGoBack()) {
+              navigation.navigate('MainTabs', { screen: 'HomeFeed' })
+            } else {
+              navigation.navigate('MainTabs')
+            }
+          }}>
+            <Text style={styles.logo}>SciRadar</Text>
+          </TouchableOpacity>
+          <View style={styles.actions}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Notifications')}
+              style={styles.iconButton}
             >
-              <BellIcon className="w-6 h-6 text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" />
-            </button>
-            <button
-              onClick={() => navigate('/papers')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              <Icon name="notifications-outline" size={24} color="#4B5563" />
+              <View style={styles.notificationDot} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('YourPapers')}
+              style={styles.iconButton}
             >
-              <BookmarkIcon className="w-6 h-6 text-gray-600" />
-            </button>
-            <button onClick={() => navigate('/profile')}>
+              <Icon name="bookmark-outline" size={24} color="#4B5563" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
               <Avatar name="John Doe" size="md" />
-            </button>
-          </div>
-        </div>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Search Bar */}
         {showSearch && <SearchBar />}
-      </div>
-    </header>
+      </View>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  header: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  container: {
+    paddingHorizontal: 16,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  logo: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#0072FF',
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconButton: {
+    padding: 8,
+    position: 'relative',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    backgroundColor: '#F97316',
+    borderRadius: 4,
+  },
+})

@@ -1,4 +1,5 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native'
 
 interface TabsProps {
   tabs: { id: string; label: string }[]
@@ -9,27 +10,62 @@ interface TabsProps {
 
 export default function Tabs({ tabs, activeTab, onTabChange, children }: TabsProps) {
   return (
-    <div>
+    <View>
       {/* Tab Headers */}
-      <div className="flex gap-2 mb-4">
+      <View style={styles.tabContainer}>
         {tabs.map((tab) => (
-          <button
+          <TouchableOpacity
             key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={`px-4 py-2 rounded-2xl font-medium transition-all duration-200 ${
-              activeTab === tab.id
-                ? 'bg-primary text-white shadow-soft'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-            }`}
+            onPress={() => onTabChange(tab.id)}
+            style={[
+              styles.tab,
+              activeTab === tab.id && styles.tabActive,
+            ]}
           >
-            {tab.label}
-          </button>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab.id && styles.tabTextActive,
+              ]}
+            >
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
         ))}
-      </div>
+      </View>
 
       {/* Tab Content */}
-      <div>{children}</div>
-    </div>
+      <View style={styles.content}>
+        {children}
+      </View>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  tabContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: 'transparent',
+  },
+  tabActive: {
+    backgroundColor: '#0072FF',
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  tabTextActive: {
+    color: '#FFFFFF',
+  },
+  content: {
+    marginTop: 8,
+  },
+})

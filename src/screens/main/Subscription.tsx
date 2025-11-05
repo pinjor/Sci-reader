@@ -1,11 +1,11 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { CheckIcon } from '@heroicons/react/24/solid'
-import { pageTransition } from '../../utils/animations'
+import React, { useState } from 'react'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Tabs from '../../components/ui/Tabs'
 import Button from '../../components/ui/Button'
+import Badge from '../../components/ui/Badge'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 const plans = {
   free: {
@@ -60,152 +60,231 @@ const plans = {
 }
 
 export default function Subscription() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
+  const insets = useSafeAreaInsets()
   const [activePlan, setActivePlan] = useState<'free' | 'pro' | 'plus'>('free')
   const [billing, setBilling] = useState<'monthly' | 'annually'>('monthly')
 
   const plan = plans[activePlan]
 
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-gray-50 pb-20"
-    >
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 z-10 px-4 py-3">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeftIcon className="w-6 h-6 text-gray-600" />
-          </button>
-          <h1 className="font-semibold text-gray-900">Subscription</h1>
-        </div>
-      </div>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color="#4B5563" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Subscription</Text>
+        <View style={{ width: 24 }} />
+      </View>
 
-      <div className="px-4 py-6">
-        {/* Plan Tabs */}
-        <Tabs
-          tabs={[
-            { id: 'free', label: 'Free Plan' },
-            { id: 'pro', label: 'Pro Plan' },
-            { id: 'plus', label: 'Plus Plan' },
-          ]}
-          activeTab={activePlan}
-          onTabChange={(id) => setActivePlan(id as typeof activePlan)}
-        />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.content}>
+          {/* Plan Tabs */}
+          <Tabs
+            tabs={[
+              { id: 'free', label: 'Free Plan' },
+              { id: 'pro', label: 'Pro Plan' },
+              { id: 'plus', label: 'Plus Plan' },
+            ]}
+            activeTab={activePlan}
+            onTabChange={(id) => setActivePlan(id as typeof activePlan)}
+          />
 
-        {/* Billing Toggle */}
-        <div className="flex items-center justify-center gap-4 my-6">
-          <span
-            className={`text-sm font-medium ${
-              billing === 'monthly' ? 'text-gray-900' : 'text-gray-400'
-            }`}
-          >
-            Monthly
-          </span>
-          <button
-            onClick={() =>
-              setBilling(billing === 'monthly' ? 'annually' : 'monthly')
-            }
-            className={`relative w-12 h-6 rounded-full transition-colors ${
-              billing === 'monthly' ? 'bg-gray-200' : 'bg-primary'
-            }`}
-          >
-            <div
-              className={`w-5 h-5 bg-white rounded-full transition-transform absolute top-0.5 ${
-                billing === 'monthly' ? 'translate-x-0.5' : 'translate-x-6'
-              }`}
+          {/* Billing Toggle */}
+          <View style={styles.billingToggle}>
+            <Text style={[styles.billingText, billing === 'monthly' && styles.billingTextActive]}>
+              Monthly
+            </Text>
+            <Switch
+              value={billing === 'annually'}
+              onValueChange={(value) => setBilling(value ? 'annually' : 'monthly')}
+              trackColor={{ false: '#D1D5DB', true: '#0072FF' }}
+              thumbColor="#FFFFFF"
             />
-          </button>
-          <span
-            className={`text-sm font-medium ${
-              billing === 'annually' ? 'text-gray-900' : 'text-gray-400'
-            }`}
-          >
-            Annually
-          </span>
-        </div>
+            <Text style={[styles.billingText, billing === 'annually' && styles.billingTextActive]}>
+              Annually
+            </Text>
+          </View>
 
-        {/* Plan Card */}
-        <div className="bg-gray-50 rounded-2xl p-6 shadow-soft mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
+          {/* Plan Card */}
+          <View style={styles.planCard}>
+            <View style={styles.planHeader}>
+              <Text style={styles.planName}>{plan.name}</Text>
               {plan.badge && (
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-lg ${
-                    plan.badgeColor === 'purple'
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'bg-green-100 text-green-700'
-                  }`}
-                >
-                  {plan.badge}
-                </span>
+                <Badge
+                  label={plan.badge}
+                  variant={plan.badgeColor === 'purple' ? 'info' : 'success'}
+                />
               )}
-            </div>
-            <div className="text-right">
-              <span className="text-2xl font-bold text-gray-900">
-                {plan.price}
-              </span>
-              <span className="text-sm text-gray-500 ml-1">{plan.period}</span>
-            </div>
-          </div>
+            </View>
+            <View style={styles.priceContainer}>
+              <Text style={styles.price}>{plan.price}</Text>
+              <Text style={styles.period}>{plan.period}</Text>
+            </View>
 
-          <div className="space-y-3">
-            {plan.features.map((feature, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <CheckIcon className="w-3 h-3 text-green-600" />
-                </div>
-                <span className="text-sm text-gray-700">{feature}</span>
-              </div>
-            ))}
-            {plan.excluded.map((feature, index) => (
-              <div key={index} className="flex items-start gap-3 opacity-50">
-                <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-red-600 text-xs">×</span>
-                </div>
-                <span className="text-sm text-gray-700">{feature}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+            {/* Features */}
+            <View style={styles.featuresContainer}>
+              <Text style={styles.featuresTitle}>Features:</Text>
+              {plan.features.map((feature, index) => (
+                <View key={index} style={styles.featureItem}>
+                  <Icon name="checkmark-circle" size={20} color="#10B981" />
+                  <Text style={styles.featureText}>{feature}</Text>
+                </View>
+              ))}
+              {plan.excluded.length > 0 && (
+                <>
+                  <Text style={styles.excludedTitle}>Excluded:</Text>
+                  {plan.excluded.map((excluded, index) => (
+                    <View key={index} style={styles.featureItem}>
+                      <Icon name="close-circle" size={20} color="#EF4444" />
+                      <Text style={[styles.featureText, styles.excludedText]}>{excluded}</Text>
+                    </View>
+                  ))}
+                </>
+              )}
+            </View>
 
-        {/* CTA Button */}
-        <Button variant="primary" fullWidth className="shadow-lg">
-          {activePlan === 'pro' && (
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-          )}
-          {activePlan === 'plus' && (
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-              />
-            </svg>
-          )}
-          Get {plan.name}
-        </Button>
-      </div>
-    </motion.div>
+            {/* Subscribe Button */}
+            {activePlan !== 'free' && (
+              <Button
+                variant="primary"
+                fullWidth
+                onPress={() => {
+                  // Handle subscription
+                  // navigation.navigate('Payment')
+                }}
+                style={styles.subscribeButton}
+              >
+                Subscribe Now
+              </Button>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 80,
+  },
+  billingToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginVertical: 24,
+  },
+  billingText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#9CA3AF',
+  },
+  billingTextActive: {
+    color: '#111827',
+  },
+  planCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  planHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  planName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    marginBottom: 24,
+  },
+  price: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#0072FF',
+  },
+  period: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  featuresContainer: {
+    marginBottom: 24,
+  },
+  featuresTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  excludedTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 12,
+  },
+  featureText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+  },
+  excludedText: {
+    textDecorationLine: 'line-through',
+    color: '#9CA3AF',
+  },
+  subscribeButton: {
+    marginTop: 8,
+  },
+})

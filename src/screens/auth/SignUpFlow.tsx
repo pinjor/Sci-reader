@@ -1,8 +1,7 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, CheckIcon } from '@heroicons/react/24/solid'
-import { pageTransition } from '../../utils/animations'
+import React, { useState } from 'react'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import Icon from 'react-native-vector-icons/Ionicons'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 
@@ -153,13 +152,15 @@ const interestCategories = [
 ]
 
 export default function SignUpFlow() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
   const [step, setStep] = useState<Step>('email')
   const [formData, setFormData] = useState({
     email: '',
     name: '',
     occupation: '',
     interests: [] as string[],
+    otherOccupation: '',
+    otherInterest: '',
   })
 
   const handleNext = () => {
@@ -171,7 +172,7 @@ export default function SignUpFlow() {
       if (formData.occupation) setStep('interests')
     } else if (step === 'interests') {
       if (formData.interests.length > 0) {
-        navigate('/otp')
+        navigation.navigate('OTP')
       }
     }
   }
@@ -180,215 +181,374 @@ export default function SignUpFlow() {
     switch (step) {
       case 'email':
         return (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              What is your email?
-            </h1>
-            <input
-              type="email"
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepTitle}>What is your email?</Text>
+            <TextInput
+              style={styles.input}
               placeholder="Enter your email address"
+              placeholderTextColor="#9CA3AF"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
+              onChangeText={(value) =>
+                setFormData({ ...formData, email: value })
               }
-              className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
             />
-          </div>
+          </View>
         )
       case 'name':
         return (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Hey, what's your name?
-            </h1>
-            <input
-              type="text"
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepTitle}>Hey, what's your name?</Text>
+            <TextInput
+              style={styles.input}
               placeholder="Your name"
+              placeholderTextColor="#9CA3AF"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+              onChangeText={(value) =>
+                setFormData({ ...formData, name: value })
               }
-              className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              autoCapitalize="words"
             />
-          </div>
+          </View>
         )
       case 'occupation':
         return (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900 text-center">
+          <View style={styles.stepContainer}>
+            <Text style={[styles.stepTitle, styles.centeredTitle]}>
               What's your occupation?
-            </h1>
-            <div className="space-y-3">
+            </Text>
+            <ScrollView style={styles.optionsContainer} showsVerticalScrollIndicator={false}>
               {occupations.map((occ) => {
                 const isOther = occ === 'Other'
                 const isSelected = formData.occupation === occ
                 return (
-                  <div key={occ}>
-                    <button
-                      onClick={() =>
+                  <View key={occ} style={styles.optionWrapper}>
+                    <TouchableOpacity
+                      onPress={() =>
                         setFormData({ ...formData, occupation: occ })
                       }
-                      className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${
-                        isSelected
-                          ? 'border-primary bg-primary/10'
-                          : 'border-gray-200 bg-gray-50'
-                      }`}
+                      style={[
+                        styles.option,
+                        isSelected && styles.optionSelected,
+                      ]}
                     >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            isSelected
-                              ? 'border-primary bg-primary'
-                              : 'border-gray-300 bg-white'
-                          }`}
+                      <View style={styles.optionContent}>
+                        <View
+                          style={[
+                            styles.radio,
+                            isSelected && styles.radioSelected,
+                          ]}
                         >
                           {isSelected && (
-                            <CheckIcon className="w-3 h-3 text-white" />
+                            <Icon name="checkmark" size={12} color="#FFFFFF" />
                           )}
-                        </div>
-                        <span className="font-medium text-gray-900">{occ}</span>
-                      </div>
-                    </button>
+                        </View>
+                        <Text style={styles.optionText}>{occ}</Text>
+                      </View>
+                    </TouchableOpacity>
                     {isOther && isSelected && (
-                      <input
-                        type="text"
+                      <TextInput
+                        style={[styles.input, styles.otherInput]}
                         placeholder="Enter your occupation"
-                        className="w-full mt-2 px-4 py-3 rounded-2xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        onChange={(e) => {
-                          // Handle custom occupation
-                        }}
+                        placeholderTextColor="#9CA3AF"
+                        value={formData.otherOccupation}
+                        onChangeText={(value) =>
+                          setFormData({ ...formData, otherOccupation: value })
+                        }
                       />
                     )}
-                  </div>
+                  </View>
                 )
               })}
-            </div>
-          </div>
+            </ScrollView>
+          </View>
         )
       case 'interests':
         return (
-          <div className="space-y-6 pb-20">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Select your interests
-            </h1>
-            <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepTitle}>Select your interests</Text>
+            <ScrollView style={styles.interestsContainer} showsVerticalScrollIndicator={false}>
               {interestCategories.map((category) => (
-                <div key={category.category}>
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">
-                    {category.category}
-                  </h3>
-                  <div className="space-y-2">
-                    {category.interests.map((interest) => {
-                      const selected = formData.interests.includes(interest)
-                      const isOther = interest === 'Other'
-                      return (
-                        <div key={interest}>
-                          <button
-                            onClick={() => {
-                              if (selected) {
-                                setFormData({
-                                  ...formData,
-                                  interests: formData.interests.filter(
-                                    (i) => i !== interest
-                                  ),
-                                })
-                              } else {
-                                setFormData({
-                                  ...formData,
-                                  interests: [...formData.interests, interest],
-                                })
-                              }
-                            }}
-                            className={`w-full p-3 rounded-2xl border-2 text-left transition-all ${
-                              selected
-                                ? 'border-primary bg-primary/10'
-                                : 'border-gray-200 bg-white'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                                  selected
-                                    ? 'border-primary bg-primary'
-                                    : 'border-gray-300 bg-white'
-                                }`}
-                              >
-                                {selected && (
-                                  <CheckIcon className="w-3 h-3 text-white" />
-                                )}
-                              </div>
-                              <span className="font-medium text-gray-900">
-                                {interest}
-                              </span>
-                            </div>
-                          </button>
-                          {isOther && selected && (
-                            <Input
-                              placeholder="Add manually"
-                              className="mt-2"
-                              onChange={(e) => {
-                                // Handle manual input
-                              }}
-                            />
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
+                <View key={category.category} style={styles.categoryContainer}>
+                  <Text style={styles.categoryTitle}>{category.category}</Text>
+                  {category.interests.map((interest) => {
+                    const selected = formData.interests.includes(interest)
+                    const isOther = interest === 'Other'
+                    return (
+                      <View key={interest} style={styles.interestWrapper}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (selected) {
+                              setFormData({
+                                ...formData,
+                                interests: formData.interests.filter(
+                                  (i) => i !== interest
+                                ),
+                              })
+                            } else {
+                              setFormData({
+                                ...formData,
+                                interests: [...formData.interests, interest],
+                              })
+                            }
+                          }}
+                          style={[
+                            styles.interestOption,
+                            selected && styles.interestOptionSelected,
+                          ]}
+                        >
+                          <View style={styles.optionContent}>
+                            <View
+                              style={[
+                                styles.checkbox,
+                                selected && styles.checkboxSelected,
+                              ]}
+                            >
+                              {selected && (
+                                <Icon name="checkmark" size={12} color="#FFFFFF" />
+                              )}
+                            </View>
+                            <Text style={styles.optionText}>{interest}</Text>
+                          </View>
+                        </TouchableOpacity>
+                        {isOther && selected && (
+                          <Input
+                            placeholder="Add manually"
+                            style={styles.otherInput}
+                            value={formData.otherInterest}
+                            onChangeText={(value) =>
+                              setFormData({ ...formData, otherInterest: value })
+                            }
+                          />
+                        )}
+                      </View>
+                    )
+                  })}
+                </View>
               ))}
-            </div>
-          </div>
+            </ScrollView>
+          </View>
         )
     }
   }
 
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-white px-6 py-12"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
     >
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-            <span>Back</span>
-          </button>
-          {step !== 'interests' && (
-            <button
-              onClick={() => navigate('/home')}
-              className="text-gray-400"
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
             >
-              Skip
-            </button>
-          )}
-        </div>
+              <Icon name="arrow-back" size={20} color="#4B5563" />
+              <Text style={styles.backText}>Back</Text>
+            </TouchableOpacity>
+            {step !== 'interests' && (
+              <TouchableOpacity
+                onPress={() => navigation.replace('MainTabs')}
+                style={styles.skipButton}
+              >
+                <Text style={styles.skipText}>Skip</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-        {/* Step Content */}
-        <div className="mb-8">{renderStep()}</div>
+          {/* Step Content */}
+          <View style={styles.stepContent}>{renderStep()}</View>
+        </View>
+      </ScrollView>
 
-        {/* Continue Button */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-10">
-          <Button
-            variant="primary"
-            fullWidth
-            onClick={handleNext}
-            disabled={
-              (step === 'email' && !formData.email) ||
-              (step === 'name' && !formData.name) ||
-              (step === 'occupation' && !formData.occupation) ||
-              (step === 'interests' && formData.interests.length === 0)
-            }
-          >
-            Continue
-          </Button>
-        </div>
-      </div>
-    </motion.div>
+      {/* Continue Button */}
+      <View style={styles.bottomContainer}>
+        <Button
+          variant="primary"
+          fullWidth
+          onPress={handleNext}
+          disabled={
+            (step === 'email' && !formData.email) ||
+            (step === 'name' && !formData.name) ||
+            (step === 'occupation' && !formData.occupation) ||
+            (step === 'interests' && formData.interests.length === 0)
+          }
+        >
+          Continue
+        </Button>
+      </View>
+    </KeyboardAvoidingView>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 100,
+  },
+  content: {
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  backText: {
+    fontSize: 16,
+    color: '#4B5563',
+  },
+  skipButton: {
+    padding: 8,
+  },
+  skipText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+  },
+  stepContent: {
+    marginBottom: 32,
+  },
+  stepContainer: {
+    gap: 24,
+  },
+  stepTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 24,
+  },
+  centeredTitle: {
+    textAlign: 'center',
+  },
+  input: {
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+    fontSize: 16,
+    color: '#111827',
+  },
+  optionsContainer: {
+    maxHeight: 400,
+  },
+  optionWrapper: {
+    marginBottom: 12,
+  },
+  option: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+  },
+  optionSelected: {
+    borderColor: '#0072FF',
+    backgroundColor: '#E8F0FE',
+  },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioSelected: {
+    borderColor: '#0072FF',
+    backgroundColor: '#0072FF',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxSelected: {
+    borderColor: '#0072FF',
+    backgroundColor: '#0072FF',
+  },
+  optionText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+    flex: 1,
+  },
+  otherInput: {
+    marginTop: 8,
+  },
+  interestsContainer: {
+    maxHeight: 500,
+  },
+  categoryContainer: {
+    marginBottom: 24,
+  },
+  categoryTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  interestWrapper: {
+    marginBottom: 8,
+  },
+  interestOption: {
+    width: '100%',
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  interestOptionSelected: {
+    borderColor: '#0072FF',
+    backgroundColor: '#E8F0FE',
+  },
+  bottomContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    padding: 16,
+    paddingBottom: 32,
+  },
+})

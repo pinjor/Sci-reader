@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline'
-import { pageTransition } from '../../utils/animations'
+import React, { useState } from 'react'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, FlatList, KeyboardAvoidingView, Platform } from 'react-native'
+import { useNavigation, useRoute } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Avatar from '../../components/ui/Avatar'
+import Icon from 'react-native-vector-icons/Ionicons'
 
 const mockConversation = [
   {
@@ -44,84 +44,221 @@ const mockConversation = [
 ]
 
 export default function MessageDetails() {
-  const { id } = useParams()
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
+  const route = useRoute<any>()
+  const insets = useSafeAreaInsets()
+  const { id } = route.params || {}
   const [message, setMessage] = useState('')
 
+  const renderMessage = ({ item: msg }: { item: typeof mockConversation[0] }) => (
+    <View
+      key={msg.id}
+      style={[
+        styles.messageContainer,
+        msg.isMe ? styles.messageContainerRight : styles.messageContainerLeft,
+      ]}
+    >
+      {!msg.isMe && <Avatar name={msg.sender} size="sm" />}
+      <View
+        style={[
+          styles.messageBubble,
+          msg.isMe ? styles.messageBubbleRight : styles.messageBubbleLeft,
+        ]}
+      >
+        <Text style={styles.messageText}>{msg.message}</Text>
+      </View>
+    </View>
+  )
+
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-white flex flex-col"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={[styles.container, { paddingTop: insets.top }]}
     >
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 z-10 px-4 py-3">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeftIcon className="w-6 h-6 text-gray-600" />
-          </button>
-          <span className="text-sm text-gray-500">Messages</span>
-          <span className="text-gray-400">›</span>
-          <h1 className="font-semibold text-gray-900">James Smith</h1>
-        </div>
-      </div>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color="#4B5563" />
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerBreadcrumb}>Messages</Text>
+          <Text style={styles.headerSeparator}>›</Text>
+          <Text style={styles.headerTitle}>James Smith</Text>
+        </View>
+        <View style={{ width: 24 }} />
+      </View>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+      <ScrollView
+        style={styles.messagesContainer}
+        contentContainerStyle={styles.messagesContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Avatars */}
-        <div className="flex justify-center gap-4 mb-6">
+        <View style={styles.avatarsContainer}>
           <Avatar name="James Smith" size="lg" />
           <Avatar name="You" size="lg" />
-        </div>
+        </View>
 
-        <p className="text-center text-sm text-gray-500 mb-4">
-          12/10/2025 - 04:15 PM
-        </p>
+        <Text style={styles.dateText}>12/10/2025 - 04:15 PM</Text>
 
-        {mockConversation.map((msg) => (
-          <motion.div
-            key={msg.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`flex gap-3 ${msg.isMe ? 'justify-end' : 'justify-start'}`}
-          >
-            {!msg.isMe && <Avatar name={msg.sender} size="sm" />}
-            <div
-              className={`max-w-[70%] rounded-2xl px-4 py-3 ${
-                msg.isMe ? 'bg-gray-100' : 'bg-gray-100'
-              }`}
-            >
-              <p className="text-sm text-gray-900">{msg.message}</p>
-            </div>
-          </motion.div>
-        ))}
+        <FlatList
+          data={mockConversation}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          scrollEnabled={false}
+          contentContainerStyle={styles.conversationContainer}
+        />
 
-        <p className="text-right text-xs text-gray-400">Just Seen</p>
-      </div>
+        <Text style={styles.seenText}>Just Seen</Text>
+      </ScrollView>
 
       {/* Input */}
-      <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Write a message."
-            className="flex-1 px-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          />
-          <button
-            onClick={() => {
-              if (message.trim()) {
-                // Send message
-                setMessage('')
-              }
-            }}
-            className="p-3 bg-primary text-white rounded-2xl"
-          >
-            <PaperAirplaneIcon className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-    </motion.div>
+      <View style={[styles.inputContainer, { paddingBottom: insets.bottom }]}>
+        <TextInput
+          style={styles.input}
+          placeholder="Type a message..."
+          placeholderTextColor="#9CA3AF"
+          value={message}
+          onChangeText={setMessage}
+          multiline
+        />
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={() => {
+            if (message.trim()) {
+              // Send message
+              setMessage('')
+            }
+          }}
+        >
+          <Icon name="send" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerBreadcrumb: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  headerSeparator: {
+    fontSize: 14,
+    color: '#9CA3AF',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  messagesContainer: {
+    flex: 1,
+  },
+  messagesContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+  },
+  avatarsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginBottom: 24,
+  },
+  dateText: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  conversationContainer: {
+    gap: 16,
+    marginBottom: 16,
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 12,
+  },
+  messageContainerLeft: {
+    justifyContent: 'flex-start',
+  },
+  messageContainerRight: {
+    justifyContent: 'flex-end',
+  },
+  messageBubble: {
+    maxWidth: '70%',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#F3F4F6',
+  },
+  messageBubbleLeft: {
+    backgroundColor: '#F3F4F6',
+  },
+  messageBubbleRight: {
+    backgroundColor: '#F3F4F6',
+  },
+  messageText: {
+    fontSize: 14,
+    color: '#111827',
+  },
+  seenText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'right',
+    marginTop: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  input: {
+    flex: 1,
+    minHeight: 40,
+    maxHeight: 100,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    fontSize: 16,
+    color: '#111827',
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#0072FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+})

@@ -1,21 +1,65 @@
-import { ReactNode } from 'react'
-import { motion } from 'framer-motion'
+import React, { ReactNode } from 'react'
+import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native'
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 
 interface CardProps {
   children: ReactNode
-  className?: string
-  onClick?: () => void
+  style?: ViewStyle
+  onPress?: () => void
 }
 
-export default function Card({ children, className = '', onClick }: CardProps) {
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity)
+
+export default function Card({ children, style, onPress }: CardProps) {
+  const scale = useSharedValue(1)
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }))
+
+  const handlePressIn = () => {
+    if (onPress) {
+      scale.value = withSpring(1.01)
+    }
+  }
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1)
+  }
+
+  if (onPress) {
+    return (
+      <AnimatedTouchable
+        style={[styles.card, style, animatedStyle]}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.9}
+      >
+        {children}
+      </AnimatedTouchable>
+    )
+  }
+
   return (
-    <motion.div
-      whileHover={onClick ? { scale: 1.01 } : undefined}
-      className={`bg-white rounded-2xl shadow-soft p-4 ${className}`}
-      onClick={onClick}
-    >
+    <AnimatedTouchable style={[styles.card, style]} activeOpacity={1} disabled>
       {children}
-    </motion.div>
+    </AnimatedTouchable>
   )
 }
 
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+})

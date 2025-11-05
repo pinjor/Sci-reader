@@ -1,76 +1,138 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { pageTransition } from '../../utils/animations'
+import React, { useState } from 'react'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import Icon from 'react-native-vector-icons/Ionicons'
 import Button from '../../components/ui/Button'
-import Input from '../../components/ui/Input'
 
 export default function PasswordScreen() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = () => {
     if (password.length >= 8) {
       // In real app, validate and save password
-      navigate('/home')
+      navigation.replace('MainTabs')
     }
   }
 
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-white px-6 py-12"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
     >
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 mb-6"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-            <span>Back</span>
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Create your password
-          </h1>
-        </div>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+            >
+              <Icon name="arrow-back" size={20} color="#4B5563" />
+              <Text style={styles.backText}>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>Create your password</Text>
+          </View>
 
-        {/* Password Input */}
-        <div className="relative mb-8">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Create a new password"
-            className="w-full px-4 py-3 pr-12 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            {showPassword ? (
-              <EyeSlashIcon className="w-5 h-5 text-gray-400" />
-            ) : (
-              <EyeIcon className="w-5 h-5 text-gray-400" />
-            )}
-          </button>
-        </div>
+          {/* Password Input */}
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Create a new password"
+              placeholderTextColor="#9CA3AF"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoComplete="password-new"
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeButton}
+            >
+              <Icon
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color="#9CA3AF"
+              />
+            </TouchableOpacity>
+          </View>
 
-        {/* Continue Button */}
-        <Button
-          variant="primary"
-          fullWidth
-          onClick={handleSubmit}
-          disabled={password.length < 8}
-        >
-          Continue
-        </Button>
-      </div>
-    </motion.div>
+          {/* Continue Button */}
+          <Button
+            variant="primary"
+            fullWidth
+            onPress={handleSubmit}
+            disabled={password.length < 8}
+          >
+            Continue
+          </Button>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 48,
+  },
+  content: {
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  header: {
+    marginBottom: 32,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  backText: {
+    fontSize: 16,
+    color: '#4B5563',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 32,
+  },
+  input: {
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingRight: 48,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    fontSize: 16,
+    color: '#111827',
+    backgroundColor: '#FFFFFF',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    marginTop: -12,
+    padding: 8,
+  },
+})

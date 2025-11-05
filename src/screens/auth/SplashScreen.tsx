@@ -1,55 +1,66 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import React, { useEffect } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming, withRepeat, withSequence } from 'react-native-reanimated'
 
 export default function SplashScreen() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
+  const opacity = useSharedValue(0)
+  const scale = useSharedValue(0.8)
 
   useEffect(() => {
+    opacity.value = withTiming(1, { duration: 500 })
+    scale.value = withTiming(1, { duration: 500 })
+
     const timer = setTimeout(() => {
-      navigate('/welcome')
+      navigation.replace('Welcome')
     }, 2000)
 
     return () => clearTimeout(timer)
-  }, [navigate])
+  }, [])
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }))
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="flex items-center justify-center min-h-screen bg-white"
-    >
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="text-center relative"
-      >
-        <motion.h1
-          className="text-6xl font-bold mb-4 relative inline-block"
-          style={{
-            fontFamily: 'Inter, system-ui, sans-serif',
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-            WebkitTextStroke: '3px',
-            WebkitTextStrokeColor: '#0072FF',
-            color: 'transparent',
-          }}
-        >
-          Sci
-          <motion.span
-            style={{
-              color: '#00C6FF',
-              WebkitTextStroke: '3px',
-              WebkitTextStrokeColor: '#00C6FF',
-            }}
-          >
-            Radar
-          </motion.span>
-        </motion.h1>
-      </motion.div>
-    </motion.div>
+    <View style={styles.container}>
+      <Animated.View style={[styles.content, animatedStyle]}>
+        <Text style={styles.logo}>
+          <Text style={styles.logoPart1}>Sci</Text>
+          <Text style={styles.logoPart2}>Radar</Text>
+        </Text>
+      </Animated.View>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    alignItems: 'center',
+  },
+  logo: {
+    fontSize: 64,
+    fontWeight: '700',
+    letterSpacing: -0.02,
+  },
+  logoPart1: {
+    color: '#0072FF',
+    textShadowColor: '#0072FF',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 3,
+  },
+  logoPart2: {
+    color: '#00C6FF',
+    textShadowColor: '#00C6FF',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 3,
+  },
+})

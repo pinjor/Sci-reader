@@ -1,8 +1,7 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, CheckIcon } from '@heroicons/react/24/solid'
-import { pageTransition } from '../../utils/animations'
+import React, { useState } from 'react'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import Icon from 'react-native-vector-icons/Ionicons'
 import Button from '../../components/ui/Button'
 
 const languages = [
@@ -11,78 +10,148 @@ const languages = [
 ]
 
 export default function LanguageSettings() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
   const [selectedLanguage, setSelectedLanguage] = useState('es')
 
   const handleSave = () => {
     // In real app, save language preference and restart app
-    navigate('/settings')
+    navigation.navigate('Settings')
   }
 
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-white px-6 py-12"
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
     >
-      <div className="max-w-md mx-auto">
+      <View style={styles.content}>
         {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 mb-6"
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
           >
-            <ArrowLeftIcon className="w-5 h-5" />
-            <span>Settings</span>
-            <span className="text-gray-400">›</span>
-            <span className="font-semibold text-gray-900">Language</span>
-          </button>
-        </div>
+            <Icon name="arrow-back" size={20} color="#4B5563" />
+            <Text style={styles.backText}>Settings</Text>
+            <Text style={styles.separator}>›</Text>
+            <Text style={styles.currentPage}>Language</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Content */}
-        <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          Language
-        </h1>
+        <Text style={styles.title}>Language</Text>
 
-        <div className="space-y-3 mb-8">
+        <View style={styles.optionsContainer}>
           {languages.map((language) => {
             const isSelected = selectedLanguage === language.id
             return (
-              <button
+              <TouchableOpacity
                 key={language.id}
-                onClick={() => setSelectedLanguage(language.id)}
-                className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${
-                  isSelected
-                    ? 'border-primary bg-primary/10'
-                    : 'border-gray-200 bg-gray-50'
-                }`}
+                onPress={() => setSelectedLanguage(language.id)}
+                style={[styles.option, isSelected && styles.optionSelected]}
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      isSelected
-                        ? 'border-primary bg-primary'
-                        : 'border-gray-300 bg-white'
-                    }`}
-                  >
-                    {isSelected && (
-                      <CheckIcon className="w-3 h-3 text-white" />
-                    )}
-                  </div>
-                  <span className="font-medium text-gray-900">
-                    {language.name}
-                  </span>
-                </div>
-              </button>
+                <View style={styles.optionContent}>
+                  <View style={[styles.radio, isSelected && styles.radioSelected]}>
+                    {isSelected && <Icon name="checkmark" size={12} color="#FFFFFF" />}
+                  </View>
+                  <Text style={styles.optionText}>{language.name}</Text>
+                </View>
+              </TouchableOpacity>
             )
           })}
-        </div>
+        </View>
 
         {/* Save Button */}
-        <Button variant="primary" fullWidth onClick={handleSave}>
+        <Button variant="primary" fullWidth onPress={handleSave}>
           Save Changes & Restart App
         </Button>
-      </div>
-    </motion.div>
+      </View>
+    </ScrollView>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 48,
+  },
+  content: {
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  header: {
+    marginBottom: 32,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  backText: {
+    fontSize: 16,
+    color: '#4B5563',
+  },
+  separator: {
+    fontSize: 16,
+    color: '#9CA3AF',
+  },
+  currentPage: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  optionsContainer: {
+    gap: 12,
+    marginBottom: 32,
+  },
+  option: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+  },
+  optionSelected: {
+    borderColor: '#0072FF',
+    backgroundColor: '#E8F0FE',
+  },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioSelected: {
+    borderColor: '#0072FF',
+    backgroundColor: '#0072FF',
+  },
+  optionText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+  },
+})

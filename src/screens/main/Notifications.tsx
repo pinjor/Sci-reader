@@ -1,9 +1,9 @@
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { pageTransition } from '../../utils/animations'
+import React from 'react'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Icon from 'react-native-vector-icons/Ionicons'
 import Card from '../../components/ui/Card'
-import Avatar from '../../components/ui/Avatar'
 
 const notifications = [
   {
@@ -30,50 +30,113 @@ const notifications = [
 ]
 
 export default function Notifications() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
+  const insets = useSafeAreaInsets()
+
+  const renderNotification = ({ item }: { item: typeof notifications[0] }) => (
+    <Card
+      style={styles.notificationCard}
+      onPress={() => {
+        // Navigate based on notification type
+        if (item.type === 'invitation') {
+          navigation.navigate('MainTabs', { screen: 'MyLibrary' })
+        } else if (item.type === 'follower') {
+          navigation.navigate('ProfileList')
+        } else if (item.type === 'paper') {
+          navigation.navigate('YourPapers')
+        }
+      }}
+    >
+      <View style={styles.notificationImage} />
+      <View style={styles.notificationContent}>
+        <Text style={styles.notificationTitle}>{item.title}</Text>
+        <Text style={styles.notificationMessage}>{item.message}</Text>
+      </View>
+    </Card>
+  )
 
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-gray-50 pb-20"
-    >
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 z-10 px-4 py-3">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeftIcon className="w-6 h-6 text-gray-600" />
-          </button>
-          <h1 className="font-semibold text-gray-900">Notifications</h1>
-        </div>
-      </div>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color="#4B5563" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Notifications</Text>
+        <View style={{ width: 24 }} />
+      </View>
 
-      <div className="px-4 py-4 space-y-4">
-        {notifications.map((notification) => (
-          <Card
-            key={notification.id}
-            className="flex gap-4 p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-            onClick={() => {
-              // Navigate based on notification type
-              if (notification.type === 'invitation') {
-                navigate('/library')
-              } else if (notification.type === 'follower') {
-                navigate('/profile-list')
-              } else if (notification.type === 'paper') {
-                navigate('/papers')
-              }
-            }}
-          >
-            <div className="w-16 h-16 rounded-xl bg-gray-200 flex-shrink-0" />
-            <div className="flex-1">
-              <h3 className="font-bold text-gray-900 mb-1">
-                {notification.title}
-              </h3>
-              <p className="text-sm text-gray-600">{notification.message}</p>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </motion.div>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <FlatList
+          data={notifications}
+          renderItem={renderNotification}
+          keyExtractor={(item) => item.id}
+          scrollEnabled={false}
+          contentContainerStyle={styles.notificationsList}
+        />
+      </ScrollView>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  notificationsList: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    gap: 16,
+  },
+  notificationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    padding: 16,
+  },
+  notificationImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#E5E7EB',
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  notificationMessage: {
+    fontSize: 14,
+    color: '#4B5563',
+  },
+})

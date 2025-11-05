@@ -1,196 +1,341 @@
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import {
-  ArrowLeftIcon,
-  MagnifyingGlassIcon,
-  BuildingOfficeIcon,
-  Cog6ToothIcon,
-  DocumentIcon,
-  ArrowRightIcon,
-} from '@heroicons/react/24/outline'
-import { pageTransition } from '../../utils/animations'
+import React from 'react'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList, Alert } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Share from 'react-native-share'
 import Header from '../../components/layout/Header'
-import BottomNav from '../../components/layout/BottomNav'
 import Avatar from '../../components/ui/Avatar'
 import Button from '../../components/ui/Button'
+import Icon from 'react-native-vector-icons/Ionicons'
 import { useApp } from '../../context/AppContext'
 
+function ProfileItem({
+  icon,
+  label,
+  value,
+  onPress,
+}: {
+  icon: string
+  label: string
+  value: string
+  onPress?: () => void
+}) {
+  return (
+    <TouchableOpacity
+      style={styles.profileItem}
+      onPress={onPress}
+      disabled={!onPress}
+    >
+      <View style={styles.profileIcon}>
+        <Icon name={icon} size={20} color="#0072FF" />
+      </View>
+      <View style={styles.profileContent}>
+        <Text style={styles.profileLabel}>{label}</Text>
+        <Text style={styles.profileValue}>{value}</Text>
+      </View>
+      {onPress && (
+        <Icon name="chevron-forward" size={20} color="#9CA3AF" />
+      )}
+    </TouchableOpacity>
+  )
+}
+
 export default function ProfileList() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
+  const insets = useSafeAreaInsets()
   const { user, papers, projects } = useApp()
 
   if (!user) return null
 
   const profileItems = [
     {
-      icon: <MagnifyingGlassIcon className="w-5 h-5" />,
+      icon: 'briefcase',
       label: 'Occupation',
       value: user.occupation,
     },
     {
-      icon: <MagnifyingGlassIcon className="w-5 h-5" />,
+      icon: 'link',
       label: 'ORCID',
       value: user.orcid || 'Not set',
     },
     {
-      icon: <MagnifyingGlassIcon className="w-5 h-5" />,
+      icon: 'mail',
       label: 'Email (Privacy: Private)',
       value: user.email,
     },
     {
-      icon: <BuildingOfficeIcon className="w-5 h-5" />,
+      icon: 'business',
       label: 'Institution',
       value: user.institution || 'Not set',
     },
     {
-      icon: <DocumentIcon className="w-5 h-5" />,
+      icon: 'document-text',
       label: 'Papers',
       value: `${papers.length} Papers`,
     },
     {
-      icon: <DocumentIcon className="w-5 h-5" />,
+      icon: 'folder',
       label: 'Library',
-      value: `${projects.length} Folders, ${papers.length} Papers, ${papers.filter(p => !p.listened).length} Unlisten`,
+      value: `${projects.length} Folders, ${papers.length} Papers, ${papers.filter((p: any) => !p.listened).length} Unlisten`,
     },
     {
-      icon: <Cog6ToothIcon className="w-5 h-5" />,
+      icon: 'settings',
       label: 'Settings',
       value: 'Lang: EN; Mode: Light; Text: Medium',
-      onClick: () => navigate('/settings'),
+      onPress: () => navigation.navigate('Settings'),
     },
     {
-      icon: <Cog6ToothIcon className="w-5 h-5" />,
+      icon: 'heart',
       label: 'Interests',
       value: user.interests.join(', '),
     },
     {
-      icon: <Cog6ToothIcon className="w-5 h-5" />,
+      icon: 'card',
       label: 'Subscription',
       value: 'Free',
+      onPress: () => navigation.navigate('Subscription'),
     },
   ]
 
   const littleMoreItems = [
     {
-      icon: <MagnifyingGlassIcon className="w-5 h-5" />,
+      icon: 'star',
       label: 'Rate Us',
-      onClick: () => {
-        // In a real app, open app store rating
-        alert('Opening app store for rating...')
+      onPress: () => {
+        Alert.alert('Rate Us', 'Opening app store for rating...')
       },
     },
     {
-      icon: <MagnifyingGlassIcon className="w-5 h-5" />,
+      icon: 'share-social',
       label: 'Invite Friends',
-      onClick: () => {
-        // Share functionality
-        if (navigator.share) {
-          navigator.share({
+      onPress: async () => {
+        try {
+          await Share.open({
             title: 'Join me on SciRadar',
-            text: 'Discover and collaborate on research papers!',
-            url: window.location.origin,
+            message: 'Discover and collaborate on research papers!',
           })
-        } else {
-          navigator.clipboard.writeText(`${window.location.origin} - Join me on SciRadar!`)
-          alert('Invite link copied to clipboard!')
+        } catch (error) {
+          Alert.alert('Invite', 'Invite link copied to clipboard!')
         }
       },
     },
   ]
 
-  return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-gray-50 pb-20"
+  const renderProfileItem = ({ item }: { item: typeof profileItems[0] }) => (
+    <ProfileItem
+      icon={item.icon}
+      label={item.label}
+      value={item.value}
+      onPress={item.onPress}
+    />
+  )
+
+  const renderLittleMoreItem = ({ item }: { item: typeof littleMoreItems[0] }) => (
+    <TouchableOpacity
+      style={styles.littleMoreItem}
+      onPress={item.onPress}
     >
-      {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 z-10 px-4 py-3">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeftIcon className="w-6 h-6 text-gray-600" />
-          </button>
-          <h1 className="font-semibold text-gray-900">Profile</h1>
-        </div>
-      </div>
+      <View style={styles.littleMoreIcon}>
+        <Icon name={item.icon} size={20} color="#0072FF" />
+      </View>
+      <Text style={styles.littleMoreLabel}>{item.label}</Text>
+      <Icon name="chevron-forward" size={20} color="#9CA3AF" />
+    </TouchableOpacity>
+  )
 
-      <div className="px-4 py-6">
-        {/* Profile Header */}
-        <div className="text-center mb-6">
-          <div className="inline-block mb-4">
-            <Avatar name={user.name} size="lg" className="mx-auto" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">
-            {user.name}
-          </h2>
-          <p className="text-gray-500">{user.occupation}</p>
-        </div>
+  return (
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <Header />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.content}>
+          {/* Profile Header */}
+          <View style={styles.profileHeader}>
+            <Avatar name={user.name} size="lg" />
+            <Text style={styles.profileName}>{user.name}</Text>
+            <Text style={styles.profileEmail}>{user.email}</Text>
+          </View>
 
-        {/* Profile Details */}
-        <div className="space-y-3 mb-6">
-          {profileItems.map((item, index) => (
-            <button
-              key={index}
-              onClick={item.onClick}
-              className="w-full bg-white rounded-2xl p-4 shadow-soft flex items-center gap-4 hover:bg-gray-50 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary flex-shrink-0">
-                {item.icon}
-              </div>
-              <div className="flex-1 text-left">
-                <p className="text-xs text-gray-500 mb-1">{item.label}</p>
-                <p className="text-sm font-medium text-gray-900">
-                  {item.value}
-                </p>
-              </div>
-              {item.onClick && (
-                <ArrowRightIcon className="w-5 h-5 text-gray-400" />
-              )}
-            </button>
-          ))}
-        </div>
+          {/* Profile Items */}
+          <View style={styles.profileSection}>
+            <FlatList
+              data={profileItems}
+              renderItem={renderProfileItem}
+              keyExtractor={(item) => item.label}
+              scrollEnabled={false}
+              contentContainerStyle={styles.profileItemsContainer}
+            />
+          </View>
 
-        {/* Little More Section */}
-        <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-3">Little More</h3>
-          <div className="space-y-3">
-            {littleMoreItems.map((item, index) => (
-              <button
-                key={index}
-                onClick={item.onClick}
-                className="w-full bg-white rounded-2xl p-4 shadow-soft flex items-center gap-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary flex-shrink-0">
-                  {item.icon}
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-gray-900">
-                    {item.label}
-                  </p>
-                </div>
-                <ArrowRightIcon className="w-5 h-5 text-gray-400" />
-              </button>
-            ))}
-          </div>
-        </div>
+          {/* Little More */}
+          <View style={styles.littleMoreSection}>
+            <Text style={styles.sectionTitle}>Little More</Text>
+            <View style={styles.littleMoreCard}>
+              <FlatList
+                data={littleMoreItems}
+                renderItem={renderLittleMoreItem}
+                keyExtractor={(item) => item.label}
+                scrollEnabled={false}
+                contentContainerStyle={styles.littleMoreContainer}
+              />
+            </View>
+          </View>
 
-        {/* Logout Button */}
-        <Button
-          variant="secondary"
-          fullWidth
-          className="bg-gray-100 text-gray-900 hover:bg-gray-200"
-          onClick={() => {
-            if (confirm('Are you sure you want to logout?')) {
-              navigate('/welcome')
-            }
-          }}
-        >
-          <ArrowRightIcon className="w-5 h-5 rotate-180" />
-          Logout
-        </Button>
-      </div>
-
-      <BottomNav />
-    </motion.div>
+          {/* Logout Button */}
+          <Button
+            variant="secondary"
+            fullWidth
+            onPress={() => {
+              Alert.alert(
+                'Logout',
+                'Are you sure you want to logout?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Logout',
+                    style: 'destructive',
+                    onPress: () => {
+                      navigation.replace('Welcome')
+                    },
+                  },
+                ]
+              )
+            }}
+            style={styles.logoutButton}
+          >
+            <Icon name="log-out" size={20} color="#111827" />
+            <Text style={styles.logoutText}>Logout</Text>
+          </Button>
+        </View>
+      </ScrollView>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 80,
+  },
+  profileHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  profileName: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 16,
+    marginBottom: 4,
+  },
+  profileEmail: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  profileSection: {
+    marginBottom: 24,
+  },
+  profileItemsContainer: {
+    gap: 16,
+  },
+  profileItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  profileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E8F0FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileContent: {
+    flex: 1,
+  },
+  profileLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  profileValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  littleMoreSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  littleMoreCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  littleMoreContainer: {
+    gap: 0,
+  },
+  littleMoreItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  littleMoreIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E8F0FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  littleMoreLabel: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+  },
+  logoutButton: {
+    marginTop: 8,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#111827',
+  },
+})

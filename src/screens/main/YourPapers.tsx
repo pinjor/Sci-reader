@@ -1,16 +1,18 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, PlusIcon } from '@heroicons/react/24/outline'
-import { pageTransition } from '../../utils/animations'
+import React, { useState } from 'react'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, FlatList } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Share from 'react-native-share'
 import BottomSheet from '../../components/ui/BottomSheet'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
 import PaperCard from '../../components/ui/PaperCard'
+import Icon from 'react-native-vector-icons/Ionicons'
 import { useApp } from '../../context/AppContext'
 
 export default function YourPapers() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
+  const insets = useSafeAreaInsets()
   const [showAddPaper, setShowAddPaper] = useState(false)
   const [paperLink, setPaperLink] = useState('')
   const { papers, updatePaper, addPaper } = useApp()
@@ -36,78 +38,87 @@ export default function YourPapers() {
     }
   }
 
+  const handleShare = async (paper: any) => {
+    try {
+      await Share.open({
+        title: paper.title,
+        message: paper.abstract,
+      })
+    } catch (error) {
+      // Share cancelled or error
+    }
+  }
+
+  const renderPaper = ({ item: paper }: { item: any }) => (
+    <PaperCard
+      id={paper.id}
+      title={paper.title}
+      authors={paper.authors}
+      year={paper.year}
+      source={paper.source}
+      citations={paper.citations}
+      abstract={paper.abstract}
+      badges={paper.badges}
+      saved={paper.saved}
+      listened={paper.listened}
+      onSave={() => updatePaper(paper.id, { saved: !paper.saved })}
+      onListen={() => updatePaper(paper.id, { listened: !paper.listened })}
+      onShare={() => handleShare(paper)}
+    />
+  )
+
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-gray-50 pb-20"
-    >
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 z-10 px-4 py-3">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeftIcon className="w-6 h-6 text-gray-600" />
-          </button>
-          <h1 className="font-semibold text-gray-900">Papers</h1>
-        </div>
-      </div>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color="#4B5563" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Papers</Text>
+        <View style={{ width: 24 }} />
+      </View>
 
-      <div className="px-4 py-4">
-        {/* Section Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Your Papers</h2>
-          <button
-            onClick={() => setShowAddPaper(true)}
-            className="flex items-center gap-1 text-primary font-medium"
-          >
-            <PlusIcon className="w-5 h-5" />
-            Add Your Paper
-          </button>
-        </div>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 20 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.content}>
+          {/* Section Header */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Your Papers</Text>
+            <TouchableOpacity
+              onPress={() => setShowAddPaper(true)}
+              style={styles.addButton}
+            >
+              <Icon name="add" size={20} color="#0072FF" />
+              <Text style={styles.addButtonText}>Add Your Paper</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Papers List */}
-        {papers.length > 0 ? (
-          <div className="space-y-4">
-            {papers.map((paper) => (
-              <PaperCard
-                key={paper.id}
-                id={paper.id}
-                title={paper.title}
-                authors={paper.authors}
-                year={paper.year}
-                source={paper.source}
-                citations={paper.citations}
-                abstract={paper.abstract}
-                badges={paper.badges}
-                saved={paper.saved}
-                listened={paper.listened}
-                onSave={() => updatePaper(paper.id, { saved: !paper.saved })}
-                onListen={() =>
-                  updatePaper(paper.id, { listened: !paper.listened })
-                }
-                    onShare={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: paper.title,
-                          text: paper.abstract,
-                          url: window.location.href,
-                        })
-                      } else {
-                        navigator.clipboard.writeText(`${paper.title}\n${window.location.href}`)
-                        alert('Paper link copied to clipboard!')
-                      }
-                    }}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-white rounded-2xl shadow-soft">
-            <p className="text-gray-500 mb-4">No papers saved yet.</p>
-            <Button variant="outline" onClick={() => setShowAddPaper(true)}>
-              Add Your First Paper
-            </Button>
-          </div>
-        )}
-      </div>
+          {/* Papers List */}
+          {papers.length > 0 ? (
+            <FlatList
+              data={papers}
+              renderItem={renderPaper}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              contentContainerStyle={styles.papersContainer}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No papers saved yet.</Text>
+              <Button
+                variant="outline"
+                onPress={() => setShowAddPaper(true)}
+                style={styles.addFirstButton}
+              >
+                Add Your First Paper
+              </Button>
+            </View>
+          )}
+        </View>
+      </ScrollView>
 
       {/* Add Paper Bottom Sheet */}
       <BottomSheet
@@ -119,38 +130,107 @@ export default function YourPapers() {
         title="Add Your Paper"
         subtitle="Share the link to your paper."
       >
-        <div className="space-y-4">
+        <View style={styles.bottomSheetContent}>
           <Input
             placeholder="Paper Link"
             value={paperLink}
-            onChange={(e) => setPaperLink(e.target.value)}
-            icon={
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            }
+            onChangeText={setPaperLink}
+            icon={<Icon name="link" size={20} color="#9CA3AF" />}
+            style={styles.input}
           />
           <Button
             variant="primary"
             fullWidth
-            onClick={handleAddPaper}
+            onPress={handleAddPaper}
             disabled={!paperLink.trim()}
           >
             Add Paper
           </Button>
-        </div>
+        </View>
       </BottomSheet>
-    </motion.div>
+    </View>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 8,
+  },
+  addButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#0072FF',
+  },
+  papersContainer: {
+    gap: 16,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: 48,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  addFirstButton: {
+    marginTop: 8,
+  },
+  bottomSheetContent: {
+    gap: 16,
+  },
+  input: {
+    marginBottom: 8,
+  },
+})

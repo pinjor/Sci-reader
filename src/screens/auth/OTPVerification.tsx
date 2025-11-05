@@ -1,15 +1,13 @@
-import { useState, useRef } from 'react'
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { pageTransition } from '../../utils/animations'
+import React, { useState, useRef } from 'react'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import Icon from 'react-native-vector-icons/Ionicons'
 import Button from '../../components/ui/Button'
-import Input from '../../components/ui/Input'
 
 export default function OTPVerification() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', ''])
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const inputRefs = useRef<(TextInput | null)[]>([])
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) return
@@ -23,88 +21,158 @@ export default function OTPVerification() {
     }
   }
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+  const handleKeyPress = (index: number, e: any) => {
+    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus()
     }
-  }
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault()
-    const pastedData = e.clipboardData.getData('text').slice(0, 6)
-    const newOtp = pastedData.split('')
-    while (newOtp.length < 6) newOtp.push('')
-    setOtp(newOtp.slice(0, 6))
   }
 
   const handleSubmit = () => {
     if (otp.every((digit) => digit !== '')) {
       // In real app, verify OTP here
-      navigate('/password')
+      navigation.navigate('Password')
     }
   }
 
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-white px-6 py-12"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
     >
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 mb-6"
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+            >
+              <Icon name="arrow-back" size={20} color="#4B5563" />
+              <Text style={styles.backText}>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>Enter OTP</Text>
+            <Text style={styles.subtitle}>
+              Enter the OTP sent via email to{' '}
+              <Text style={styles.emailText}>youremail@email.com</Text>
+            </Text>
+          </View>
+
+          {/* OTP Inputs */}
+          <View style={styles.otpContainer}>
+            {otp.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={(el) => (inputRefs.current[index] = el)}
+                style={styles.otpInput}
+                value={digit}
+                onChangeText={(value) => handleChange(index, value)}
+                onKeyPress={(e) => handleKeyPress(index, e)}
+                keyboardType="number-pad"
+                maxLength={1}
+                selectTextOnFocus
+              />
+            ))}
+          </View>
+
+          {/* Resend */}
+          <View style={styles.resendContainer}>
+            <TouchableOpacity>
+              <Text style={styles.resendText}>Didn't receive OTP? Resend.</Text>
+            </TouchableOpacity>
+            <Text style={styles.timerText}>00:28</Text>
+          </View>
+
+          {/* Continue Button */}
+          <Button
+            variant="primary"
+            fullWidth
+            onPress={handleSubmit}
+            disabled={!otp.every((digit) => digit !== '')}
           >
-            <ArrowLeftIcon className="w-5 h-5" />
-            <span>Back</span>
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Enter OTP</h1>
-          <p className="text-gray-600">
-            Enter the OTP sent via email to{' '}
-            <span className="underline">youremail@email.com</span>
-          </p>
-        </div>
-
-        {/* OTP Inputs */}
-        <div
-          className="flex gap-3 mb-6 justify-center"
-          onPaste={handlePaste}
-        >
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              ref={(el) => (inputRefs.current[index] = el)}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              className="w-14 h-14 text-center text-xl font-bold border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-          ))}
-        </div>
-
-        {/* Resend */}
-        <div className="flex items-center justify-between mb-8">
-          <button className="text-sm text-gray-600 underline">
-            Didn't receive OTP? Resend.
-          </button>
-          <span className="text-sm text-gray-500">00:28</span>
-        </div>
-
-        {/* Continue Button */}
-        <Button
-          variant="primary"
-          fullWidth
-          onClick={handleSubmit}
-          disabled={!otp.every((digit) => digit !== '')}
-        >
-          Continue
-        </Button>
-      </div>
-    </motion.div>
+            Continue
+          </Button>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 48,
+  },
+  content: {
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  header: {
+    marginBottom: 32,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  backText: {
+    fontSize: 16,
+    color: '#4B5563',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#4B5563',
+  },
+  emailText: {
+    textDecorationLine: 'underline',
+  },
+  otpContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  otpInput: {
+    width: 56,
+    height: 56,
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '700',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    color: '#111827',
+  },
+  resendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  resendText: {
+    fontSize: 14,
+    color: '#4B5563',
+    textDecorationLine: 'underline',
+  },
+  timerText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+})

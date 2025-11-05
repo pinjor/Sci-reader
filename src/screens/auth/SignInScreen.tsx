@@ -1,12 +1,11 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeftIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { pageTransition } from '../../utils/animations'
+import React, { useState } from 'react'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import Icon from 'react-native-vector-icons/Ionicons'
 import Button from '../../components/ui/Button'
 
 export default function SignInScreen() {
-  const navigate = useNavigate()
+  const navigation = useNavigation<any>()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -14,90 +13,196 @@ export default function SignInScreen() {
   const handleSubmit = () => {
     if (email && password) {
       // In real app, authenticate user here
-      navigate('/home')
+      navigation.replace('MainTabs')
     }
   }
 
   return (
-    <motion.div
-      {...pageTransition}
-      className="min-h-screen bg-white px-6 py-12"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
     >
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 mb-6"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-            <span>Back</span>
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign In</h1>
-          <p className="text-gray-600">
-            Enter your credentials to access your account
-          </p>
-        </div>
-
-        {/* Form */}
-        <div className="space-y-4 mb-8">
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          />
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 pr-12 rounded-2xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
             >
-              {showPassword ? (
-                <EyeSlashIcon className="w-5 h-5 text-gray-400" />
-              ) : (
-                <EyeIcon className="w-5 h-5 text-gray-400" />
-              )}
-            </button>
-          </div>
-          <button
-            onClick={() => navigate('/forgot-password')}
-            className="text-sm text-primary text-right w-full"
-          >
-            Forgot Password?
-          </button>
-        </div>
+              <Icon name="arrow-back" size={20} color="#4B5563" />
+              <Text style={styles.backText}>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>Sign In</Text>
+            <Text style={styles.subtitle}>
+              Enter your credentials to access your account
+            </Text>
+          </View>
 
-        {/* Sign In Button */}
-        <Button
-          variant="primary"
-          fullWidth
-          onClick={handleSubmit}
-          disabled={!email || !password}
-        >
-          Sign In
-        </Button>
+          {/* Form */}
+          <View style={styles.form}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Email address"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+              />
+            </View>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#9CA3AF"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoComplete="password"
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeButton}
+              >
+                <Icon
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color="#9CA3AF"
+                />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                // Navigate to forgot password
+                // navigation.navigate('ForgotPassword')
+              }}
+              style={styles.forgotButton}
+            >
+              <Text style={styles.forgotText}>Forgot Password?</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Sign Up Link */}
-        <p className="text-center mt-6 text-gray-600">
-          Don't have an account?{' '}
-          <button
-            onClick={() => navigate('/signup')}
-            className="text-primary font-medium"
+          {/* Sign In Button */}
+          <Button
+            variant="primary"
+            fullWidth
+            onPress={handleSubmit}
+            disabled={!email || !password}
           >
-            Sign Up
-          </button>
-        </p>
-      </div>
-    </motion.div>
+            Sign In
+          </Button>
+
+          {/* Sign Up Link */}
+          <View style={styles.signUpContainer}>
+            <Text style={styles.signUpText}>
+              Don't have an account?{' '}
+              <Text
+                style={styles.signUpLink}
+                onPress={() => navigation.navigate('SignUp')}
+              >
+                Sign Up
+              </Text>
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 48,
+  },
+  content: {
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  header: {
+    marginBottom: 32,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  backText: {
+    fontSize: 16,
+    color: '#4B5563',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#4B5563',
+  },
+  form: {
+    marginBottom: 32,
+    gap: 16,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  input: {
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+    fontSize: 16,
+    color: '#111827',
+  },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    marginTop: -12,
+    padding: 8,
+  },
+  forgotButton: {
+    alignSelf: 'flex-end',
+    marginTop: -8,
+  },
+  forgotText: {
+    fontSize: 14,
+    color: '#0072FF',
+  },
+  signUpContainer: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  signUpText: {
+    fontSize: 16,
+    color: '#4B5563',
+  },
+  signUpLink: {
+    color: '#0072FF',
+    fontWeight: '500',
+  },
+})
